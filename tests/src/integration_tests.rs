@@ -38,6 +38,7 @@ mod tests {
             .into_t::<String>()
             .expect("should be string.");
 
+        // each grocery_item is stored in named keys of admin
         assert_eq!(result_of_query, item);
     }
 
@@ -115,7 +116,7 @@ mod tests {
         .build();
 
         // deploy the contract.
-        let ret = builder.exec(execute_request).commit().get_exec_result(2);
+        let ret = builder.exec(execute_request).commit().get_exec_result(1);
         dbg!(ret);
     }
 

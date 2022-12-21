@@ -234,6 +234,8 @@ pub extern "C" fn call() {
 //
 
 // It does not make sense on gas point of view to query a dict with a payable entrypoint
+// Dictionnaries are in state, no need to query them with an entry point
+// Its uref is stored in named keys of admin and contract named keys thus values are accessible directly through dictionnarie queries
 #[no_mangle]
 pub extern "C" fn inventory_get() {
     let dictionary_item_key: String = runtime::get_named_arg(RUNTIME_KEY_NAME);
