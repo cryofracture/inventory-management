@@ -1,5 +1,8 @@
 #![no_std]
 #![no_main]
+// #![allow(dead_code)]
+// #![allow(unused_imports)]
+
 
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
@@ -28,15 +31,12 @@ const CONTRACT_HASH: &str = "grocery_inventory_contract_hash";
 const CONTRACT_PACKAGE_HASH: &str = "grocery_inventory_contract_package_hash";
 const DICT_NAME: &str = "grocery_inventory_dict";
 const RUNTIME_KEY_NAME: &str = "item";
-// const RUNTIME_VALUE: &str = "value";
+// const ENTRY_POINT_ADD_ITEM: &str = "inventory_add_item";
 const ENTRY_POINT_INVENTORY_GET: &str = "inventory_get";
-// const ENTRY_POINT_INVENTORY_INC: &str = "inventory_inc";
-// const ENTRY_POINT_INVENTORY_DEC: &str = "inventory_dec";
-// const RUNTIME_DICT_UREF: &str = "dict-ref";
-// const ENTRY_POINT_ADD_ITEM: &str = "add_item";
+// const RUNTIME_INITIAL_QTY: &str = "initial_qty";
 const CONTRACT_VERSION_KEY: &str = "version";
-// const NUM_BIG_ITEM: i32 = 250;
 const NUM_SMALL_ITEM: u32 = 75;
+
 
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
 #[repr(u16)]
@@ -45,9 +45,6 @@ enum Error {
     ValueNotFound = 1,
     MissingKey = 2,
     KeyMismatch = 3,
-    // DictAlreadyExists = 2,
-    // MissingKey = 3,
-    // SeedMismatch = 4,
 }
 
 impl From<Error> for ApiError {
@@ -55,36 +52,6 @@ impl From<Error> for ApiError {
         ApiError::User(error as u16)
     }
 }
-
-// pub struct GroceryInventory {
-//     apples: i32,
-//     oranges: i32,
-//     lettuce: i32,
-//     tomatoes: i32,
-//     grapes: i32,
-//     carrots: i32,
-//     arugula: i32,
-//     cantaloupes: i32,
-//     cucumbers: i32,
-//     garlic: i32,
-// }
-//
-// impl GroceryInventory {
-//     pub fn new() -> Self {
-//         Self {
-//             apples: NUM_BIG_ITEM / 2,
-//             oranges: NUM_BIG_ITEM,
-//             lettuce: NUM_BIG_ITEM / 4,
-//             tomatoes: NUM_SMALL_ITEM,
-//             grapes: NUM_BIG_ITEM * 2,
-//             carrots: NUM_SMALL_ITEM * 3,
-//             arugula: NUM_SMALL_ITEM,
-//             cantaloupes: NUM_BIG_ITEM / 2,
-//             cucumbers: NUM_BIG_ITEM / 3,
-//             garlic: NUM_BIG_ITEM,
-//         }
-//     }
-// }
 
 #[no_mangle]
 pub extern "C" fn call() {
@@ -99,6 +66,7 @@ pub extern "C" fn call() {
         "cantaloupes",
         "cucumbers",
         "garlic",
+        "rutabaga",
     ];
     let dict_seed_ref = storage::new_dictionary(DICT_NAME).unwrap_or_revert();
 
@@ -200,42 +168,26 @@ pub extern "C" fn call() {
 }
 
 // #[no_mangle]
-// pub extern "C" fn inventory_inc() {
-//     let inc_value: i32 = runtime::get_named_arg(RUNTIME_VALUE);
-//     let value_ref: storage::new_uref(inc_value.clone());
+// pub extern "C" fn inventory_add_item() {
 //     let dictionary_item_key: String = runtime::get_named_arg(RUNTIME_KEY_NAME);
-//     let seed_uref: String = runtime::get_named_arg(RUNTIME_SEED_REF)
-//         .into_uref()
-//         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
-//     let uref: URef = runtime::get_key(RUNTIME_KEY_NAME)
-//         .unwrap_or_revert_with(ApiError::MissingKey);
-//    let initial_value: i32 = storage::dictionary_get(seed_uref, dictionary_item_key).unwrap_or_revert();
-//    let new_value: i32 = initial_value + inc_value;
-//    storage::dictionary_put(
-//            seed_uref,
-//            dictionary_item_key,
-//            new_value,
-//        );
-// }
-//
-// #[no_mangle]
-// pub extern "C" fn inventory_dec() {
-//     // --session-arg <"NAME:TYPE='VALUE'"
+//     let initial_inventory_qty: u32 = runtime::get_named_arg(RUNTIME_INITIAL_QTY);
 //     let uref: URef = runtime::get_key(DICT_NAME)
 //         .unwrap_or_revert_with(ApiError::MissingKey)
 //         .into_uref()
 //         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
-//     let count: i32 = storage::read(uref)
+//     match storage::dictionary_get::<String>(uref, &dictionary_item_key)
+//         .unwrap_or_revert()
+//     {
+//         None => storage::dictionary_put(uref, &dictionary_item_key, initial_inventory_qty),
+//         Some(_) => runtime::revert(Error::KeyAlreadyExists),
+//     };
+//
+//     let value: u32 = storage::dictionary_get(uref, dictionary_item_key.as_str())
 //         .unwrap_or_revert_with(ApiError::Read)
 //         .unwrap_or_revert_with(ApiError::ValueNotFound);
-//     let new_count: i32 = count - 1;
-//     storage::write(uref, new_count); // decrement the count by 1
+//     runtime::ret(CLValue::from_t(value).unwrap_or_revert());
 // }
-//
 
-// It does not make sense on gas point of view to query a dict with a payable entrypoint
-// Dictionnaries are in state, no need to query them with an entry point
-// Its uref is stored in named keys of admin and contract named keys thus values are accessible directly through dictionnarie queries
 #[no_mangle]
 pub extern "C" fn inventory_get() {
     let dictionary_item_key: String = runtime::get_named_arg(RUNTIME_KEY_NAME);
