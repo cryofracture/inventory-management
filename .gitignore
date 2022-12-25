@@ -2,3 +2,5 @@
 .idea
 receive_inventory
 send_inventory
+*.pem
+add_item
