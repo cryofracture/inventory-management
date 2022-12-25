@@ -17,6 +17,7 @@ mod tests {
     const DICT_NAME: &str = "grocery_inventory_dict";
     const RUNTIME_KEY_NAME: &str = "item";
     const ENTRY_POINT_INVENTORY_GET: &str = "inventory_get";
+    const ENTRY_POINT_INC_ITEM: &str = "inventory_inc_item";
     const CONTRACT_PACKAGE_HASH: &str = "grocery_inventory_contract_package_hash";
 
     #[test]
@@ -86,14 +87,13 @@ mod tests {
         }
     }
 
-    // It does not make sense on gas point of view to query a dict with a payable entrypoint
-    #[test]
-    fn should_get_apples_inventory_from_entry_point_payable_tx() {
+    fn should_increase_lettuce_inventory_from_entry_point_payable_tx() {
         let (mut builder, account_addr) = get_contract_builder();
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-        let item = "apples";
+        let item = "lettuce";
+        let new_inventory_amt: u32 = 100;
 
         let grocery_inventory_contract_package_hash = account
             .named_keys()
@@ -108,9 +108,10 @@ mod tests {
             account_addr,
             grocery_inventory_contract_package_hash,
             None,
-            ENTRY_POINT_INVENTORY_GET,
+            ENTRY_POINT_INC_ITEM,
             runtime_args! {
-                RUNTIME_KEY_NAME => item
+                RUNTIME_KEY_NAME => item,
+                // RUNTIME_INITIAL_QTY => new_inventory_amt,
             },
         )
         .build();
@@ -119,6 +120,40 @@ mod tests {
         let ret = builder.exec(execute_request).commit().get_exec_result(1);
         dbg!(ret);
     }
+
+    // It does not make sense on gas point of view to query a dict with a payable entrypoint
+    // #[test]
+    // fn should_get_apples_inventory_from_entry_point_payable_tx() {
+    //     let (mut builder, account_addr) = get_contract_builder();
+    //     let account = builder.get_expected_account(account_addr);
+    //     dbg!(account.named_keys());
+    //
+    //     let item = "apples";
+    //
+    //     let grocery_inventory_contract_package_hash = account
+    //         .named_keys()
+    //         .get(CONTRACT_PACKAGE_HASH)
+    //         .and_then(|key| key.into_hash())
+    //         .map(ContractPackageHash::new)
+    //         .expect("should have test contract package hash");
+    //
+    //     dbg!(grocery_inventory_contract_package_hash);
+    //
+    //     let execute_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+    //         account_addr,
+    //         grocery_inventory_contract_package_hash,
+    //         None,
+    //         ENTRY_POINT_INVENTORY_GET,
+    //         runtime_args! {
+    //             RUNTIME_KEY_NAME => item
+    //         },
+    //     )
+    //     .build();
+    //
+    //     // deploy the contract.
+    //     let ret = builder.exec(execute_request).commit().get_exec_result(1);
+    //     dbg!(ret);
+    // }
 
     #[test]
     fn should_error_bad_admin_address() {

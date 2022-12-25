@@ -187,7 +187,7 @@ pub extern "C" fn inventory_inc_item() {
         .into_uref()
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
 
-    let old_value: u32 = storage::dictionary_get(uref, dictionary_item_key.as_str())
+    let old_value: u32 = storage::dictionary_get(uref, &dictionary_item_key.as_str())
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound);
 
