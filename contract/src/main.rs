@@ -33,8 +33,10 @@ const RUNTIME_KEY_NAME: &str = "item";
 // const ENTRY_POINT_INVENTORY_GET: &str = "inventory_get";
 const ENTRY_POINT_ADD_ITEM: &str = "inventory_add_item";
 const ENTRY_POINT_INC_ITEM: &str = "inventory_inc_item";
+const ENTRY_POINT_DEC_ITEM: &str = "inventory_dec_item";
 const RUNTIME_INITIAL_QTY: &str = "initial_qty";
 const RUNTIME_INC_QTY: &str = "inc_qty";
+const RUNTIME_DEC_QTY: &str = "dec_qty";
 const CONTRACT_VERSION_KEY: &str = "version";
 const NUM_SMALL_ITEM: u32 = 75;
 
@@ -117,6 +119,15 @@ pub extern "C" fn call() {
         EntryPointType::Contract,
     ));
 
+    store_entry_points.add_entry_point(EntryPoint::new(
+        ENTRY_POINT_DEC_ITEM,
+        vec![Parameter::new(RUNTIME_KEY_NAME, CLType::String),
+             Parameter::new(RUNTIME_DEC_QTY, CLType::String)],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
     // store dict seed URef in caller's named keys
     //let dict_seed = storage::new_uref(dict_seed_ref);
     let dict_seed_key = Key::URef(dict_seed_ref);
@@ -167,7 +178,7 @@ pub extern "C" fn inventory_add_item() {
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
 
     // Match dictionary item to session provided values, if None, put k/v pair, if Some, revert.
-    match storage::dictionary_get::<String>(uref, &dictionary_item_key)
+    match storage::dictionary_get::<u32>(uref, &dictionary_item_key)
         .unwrap_or_revert()
     {
         None => storage::dictionary_put(uref, &dictionary_item_key, initial_inventory_qty),
@@ -194,10 +205,37 @@ pub extern "C" fn inventory_inc_item() {
     let new_value: u32 = old_value + incoming_qty;
 
     // Match dictionary item to session provided values, if None, put k/v pair, if Some, revert.
-    match storage::dictionary_get::<String>(uref, &dictionary_item_key)
+    match storage::dictionary_get::<u32>(uref, &dictionary_item_key)
         .unwrap_or_revert()
     {
         None => runtime::revert(Error::KeyMismatch),
+        Some(_) => storage::dictionary_put(uref, &dictionary_item_key, new_value),
+    };
+}
+
+#[no_mangle]
+pub extern "C" fn inventory_dec_item() {
+    // Get runtime args for session entrypoint to increase stock level of inventory items.
+    let dictionary_item_key: String = runtime::get_named_arg(RUNTIME_KEY_NAME);
+    let incoming_qty: u32 = runtime::get_named_arg(RUNTIME_DEC_QTY);
+
+    // Get URef of dictionary.
+    let uref: URef = runtime::get_key(DICT_NAME)
+        .unwrap_or_revert_with(ApiError::MissingKey)
+        .into_uref()
+        .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
+
+    let old_value: u32 = storage::dictionary_get(uref, &dictionary_item_key.as_str())
+        .unwrap_or_revert_with(ApiError::Read)
+        .unwrap_or_revert_with(ApiError::ValueNotFound);
+
+    let new_value: u32 = old_value - incoming_qty;
+
+    // Match dictionary item to session provided values, if None, put k/v pair, if Some, revert.
+    match storage::dictionary_get::<u32>(uref, &dictionary_item_key)
+        .unwrap_or_revert()
+    {
+        None => runtime::revert(Error::MissingKey),
         Some(_) => storage::dictionary_put(uref, &dictionary_item_key, new_value),
     };
 }
