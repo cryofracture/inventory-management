@@ -3,6 +3,7 @@
 #![allow(unused_imports)]
 
 
+
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
@@ -41,6 +42,7 @@ const CONTRACT_VERSION_KEY: &str = "version";
 const NUM_SMALL_ITEM: u32 = 75;
 
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
+#[allow(dead_code)]
 #[repr(u16)]
 enum Error {
     KeyAlreadyExists = 0,
