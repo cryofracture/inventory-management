@@ -5,7 +5,7 @@ services:
 stages:
   - lint contract
   - test contract
-#  - set up nctl
+  - set up nctl
 #  - deploy contract to nctl
 jobs:
   include:
@@ -21,4 +21,12 @@ jobs:
       name: "Cargo unit tests"
       if: type IN (push) and branch =~ ^(main|develop|master|)(\/[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*)$
       script:
+        - make prepare
         - make test
+    - stage: set up nctl
+      name: "Docker Pull NCTL"
+      if:
+      script:
+        - docker pull makesoftware/casper-nctl
+        - docker run --rm -it --name mynctl -d -p 11101:11101 -p 14101:14101 -p 18101:18101 makesoftware/casper-nctl
+        - source nctl-activate.sh mynctl
