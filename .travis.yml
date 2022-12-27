@@ -1,5 +1,6 @@
 language: rust
 script:
+  - rustup component add clippy --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
   - make prepare
   - make check-lint
   - make test
