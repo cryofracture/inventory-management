@@ -12,7 +12,6 @@ test: build-contract
 
 clippy:
 	cd contract && cargo clippy --all-targets -- -D warnings
-	cd add_item && cargo clippy --all-targets -- -D warnings
 	cd tests && cargo clippy --all-targets -- -D warnings
 
 check-lint: clippy

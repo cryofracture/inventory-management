@@ -2,8 +2,6 @@
 #![no_main]
 #![allow(unused_imports)]
 
-
-
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
@@ -15,7 +13,7 @@ use alloc::{
     string::{String, ToString},
     vec,
 };
-// use alloc::collections::BTreeMap;
+
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
@@ -31,7 +29,6 @@ const CONTRACT_HASH: &str = "grocery_inventory_contract_hash";
 const CONTRACT_PACKAGE_HASH: &str = "grocery_inventory_contract_package_hash";
 const DICT_NAME: &str = "grocery_inventory_dict";
 const RUNTIME_KEY_NAME: &str = "item";
-// const ENTRY_POINT_INVENTORY_GET: &str = "inventory_get";
 const ENTRY_POINT_ADD_ITEM: &str = "inventory_add_item";
 const ENTRY_POINT_INC_ITEM: &str = "inventory_inc_item";
 const ENTRY_POINT_DEC_ITEM: &str = "inventory_dec_item";
@@ -49,9 +46,6 @@ enum Error {
     ValueNotFound = 1,
     MissingKey = 2,
     KeyMismatch = 3,
-    // DictAlreadyExists = 2,
-    // MissingKey = 3,
-    // SeedMismatch = 4,
 }
 
 impl From<Error> for ApiError {
@@ -82,18 +76,12 @@ pub extern "C" fn call() {
         let key = Key::URef(item_ref);
         runtime::put_key(dictionary_item_key, key);
 
-        // let retrieved_key = runtime::get_key(dictionary_item_key).unwrap_or_revert();
-        // if retrieved_key != key {
-        //     runtime::revert(Error::KeyMismatch);
-        // }
-
         let mut inventory_count: u32 = NUM_SMALL_ITEM;
         if dictionary_item_key.ends_with('s') {
             inventory_count *= 3;
         }
 
-        match storage::dictionary_get::<String>(dict_seed_ref, dictionary_item_key)
-            .unwrap_or_revert()
+        match storage::dictionary_get::<u32>(dict_seed_ref, dictionary_item_key).unwrap_or_revert()
         {
             None => storage::dictionary_put(dict_seed_ref, dictionary_item_key, inventory_count),
             Some(_) => runtime::revert(Error::KeyAlreadyExists),
@@ -105,8 +93,10 @@ pub extern "C" fn call() {
 
     store_entry_points.add_entry_point(EntryPoint::new(
         ENTRY_POINT_ADD_ITEM,
-        vec![Parameter::new(RUNTIME_KEY_NAME, CLType::String),
-             Parameter::new(RUNTIME_INITIAL_QTY, CLType::String)],
+        vec![
+            Parameter::new(RUNTIME_KEY_NAME, CLType::String),
+            Parameter::new(RUNTIME_INITIAL_QTY, CLType::String),
+        ],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -114,8 +104,10 @@ pub extern "C" fn call() {
 
     store_entry_points.add_entry_point(EntryPoint::new(
         ENTRY_POINT_INC_ITEM,
-        vec![Parameter::new(RUNTIME_KEY_NAME, CLType::String),
-             Parameter::new(RUNTIME_INC_QTY, CLType::String)],
+        vec![
+            Parameter::new(RUNTIME_KEY_NAME, CLType::String),
+            Parameter::new(RUNTIME_INC_QTY, CLType::String),
+        ],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -123,15 +115,17 @@ pub extern "C" fn call() {
 
     store_entry_points.add_entry_point(EntryPoint::new(
         ENTRY_POINT_DEC_ITEM,
-        vec![Parameter::new(RUNTIME_KEY_NAME, CLType::String),
-             Parameter::new(RUNTIME_DEC_QTY, CLType::String)],
+        vec![
+            Parameter::new(RUNTIME_KEY_NAME, CLType::String),
+            Parameter::new(RUNTIME_DEC_QTY, CLType::String),
+        ],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
 
     // store dict seed URef in caller's named keys
-    //let dict_seed = storage::new_uref(dict_seed_ref);
+    // let dict_seed = storage::new_uref(dict_seed_ref);
     let dict_seed_key = Key::URef(dict_seed_ref);
     runtime::put_key(DICT_NAME, dict_seed_key);
 
@@ -139,7 +133,6 @@ pub extern "C" fn call() {
     let mut store_named_keys = NamedKeys::new();
     let key_name = String::from(DICT_NAME);
     store_named_keys.insert(key_name, dict_seed_key);
-
 
     // Create a new contract package that can be upgraded
     let (stored_contract_hash, contract_version) = storage::new_contract(
@@ -156,7 +149,7 @@ pub extern "C" fn call() {
     // Create a named key for the contract hash
     runtime::put_key(CONTRACT_HASH, stored_contract_hash.into());
 }
-//
+
 #[no_mangle]
 pub extern "C" fn inventory_add_item() {
     // Get runtime args for session entrypoint to add item to inventory
@@ -180,9 +173,7 @@ pub extern "C" fn inventory_add_item() {
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
 
     // Match dictionary item to session provided values, if None, put k/v pair, if Some, revert.
-    match storage::dictionary_get::<u32>(uref, &dictionary_item_key)
-        .unwrap_or_revert()
-    {
+    match storage::dictionary_get::<u32>(uref, &dictionary_item_key).unwrap_or_revert() {
         None => storage::dictionary_put(uref, &dictionary_item_key, initial_inventory_qty),
         Some(_) => runtime::revert(Error::KeyAlreadyExists),
     };
@@ -200,18 +191,16 @@ pub extern "C" fn inventory_inc_item() {
         .into_uref()
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
 
-    let old_value: u32 = storage::dictionary_get(uref, &dictionary_item_key.as_str())
+    let old_value: u32 = storage::dictionary_get(uref, dictionary_item_key.as_str())
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound);
 
     let new_value: u32 = old_value + incoming_qty;
 
     // Match dictionary item to session provided values, if None, put k/v pair, if Some, revert.
-    match storage::dictionary_get::<u32>(uref, &dictionary_item_key)
-        .unwrap_or_revert()
-    {
+    match storage::dictionary_get::<u32>(uref, &dictionary_item_key).unwrap_or_revert() {
         None => runtime::revert(Error::KeyMismatch),
-        Some(_) => storage::dictionary_put(uref, &dictionary_item_key, new_value),
+        Some(_) => storage::dictionary_put(uref, dictionary_item_key.as_str(), new_value),
     };
 }
 
@@ -227,16 +216,14 @@ pub extern "C" fn inventory_dec_item() {
         .into_uref()
         .unwrap_or_revert_with(ApiError::UnexpectedKeyVariant);
 
-    let old_value: u32 = storage::dictionary_get(uref, &dictionary_item_key.as_str())
+    let old_value: u32 = storage::dictionary_get(uref, dictionary_item_key.as_str())
         .unwrap_or_revert_with(ApiError::Read)
         .unwrap_or_revert_with(ApiError::ValueNotFound);
 
     let new_value: u32 = old_value - incoming_qty;
 
     // Match dictionary item to session provided values, if None, put k/v pair, if Some, revert.
-    match storage::dictionary_get::<u32>(uref, &dictionary_item_key)
-        .unwrap_or_revert()
-    {
+    match storage::dictionary_get::<u32>(uref, &dictionary_item_key).unwrap_or_revert() {
         None => runtime::revert(Error::MissingKey),
         Some(_) => storage::dictionary_put(uref, &dictionary_item_key, new_value),
     };
