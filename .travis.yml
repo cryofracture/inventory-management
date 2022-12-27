@@ -11,7 +11,7 @@ jobs:
   include:
     - stage: lint contract
       name: "Clippy Lint"
-      if: type IN (push) and branch IN (feature*, develop*)
+      if: type IN (push) and branch =~ ^(main|develop|master|)(\/[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*)$
       script:
         - rustup component add clippy --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
         - rustup component add rustfmt --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
@@ -19,6 +19,6 @@ jobs:
         - make check-lint
     - stage: test contract
       name: "Cargo unit tests"
-      if: type IN (push) and branch IN (feature*, develop*)
+      if: type IN (push) and branch =~ ^(main|develop|master|)(\/[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*)$
       script:
         - make test
