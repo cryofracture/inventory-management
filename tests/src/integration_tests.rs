@@ -170,7 +170,7 @@ mod tests {
                 RUNTIME_DEC_QTY => dec_amt,
             },
         )
-            .build();
+        .build();
 
         // deploy the contract.
         let ret = builder.exec(execute_request).commit().get_exec_result(1);
@@ -198,7 +198,6 @@ mod tests {
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-
         let item = "avocados";
         let initial_qty: u32 = 215;
 
@@ -221,7 +220,7 @@ mod tests {
                 RUNTIME_INITIAL_QTY => initial_qty,
             },
         )
-            .build();
+        .build();
 
         // deploy the contract.
         let ret = builder.exec(execute_request).commit().get_exec_result(1);
