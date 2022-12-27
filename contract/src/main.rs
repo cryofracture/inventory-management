@@ -25,9 +25,9 @@ use casper_types::{
     CLType, CLValue, Key, Parameter, URef,
 };
 
-const CONTRACT_HASH: &str = "grocery_inventory_contract_hash";
-const CONTRACT_PACKAGE_HASH: &str = "grocery_inventory_contract_package_hash";
-const DICT_NAME: &str = "grocery_inventory_dict";
+const CONTRACT_HASH: &str = "inventory_management_contract_hash";
+const CONTRACT_PACKAGE_HASH: &str = "inventory_management_contract_package_hash";
+const DICT_NAME: &str = "inventory_management_dict";
 const RUNTIME_KEY_NAME: &str = "item";
 const ENTRY_POINT_ADD_ITEM: &str = "inventory_add_item";
 const ENTRY_POINT_INC_ITEM: &str = "inventory_inc_item";
@@ -36,7 +36,7 @@ const RUNTIME_INITIAL_QTY: &str = "initial_qty";
 const RUNTIME_INC_QTY: &str = "inc_qty";
 const RUNTIME_DEC_QTY: &str = "dec_qty";
 const CONTRACT_VERSION_KEY: &str = "version";
-const NUM_SMALL_ITEM: u32 = 75;
+const NUM_STARTING_QTY: u32 = 75;
 
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
 #[allow(dead_code)]
@@ -56,33 +56,40 @@ impl From<Error> for ApiError {
 
 #[no_mangle]
 pub extern "C" fn call() {
-    let grocery_items = vec![
-        "apples",
-        "oranges",
-        "lettuce",
-        "tomatoes",
-        "grapes",
-        "carrots",
-        "arugula",
-        "cantaloupes",
-        "cucumbers",
-        "garlic",
+    let inventory_items = vec![
+        "Samsung 85 inch OLED",
+        "Sony 70 inch QLED",
+        "ASUS ROG Zephyrus 15\" Laptop",
+        "Samsung 17\" Laptop",
+        "Sony PlayStation 5",
+        "Xbox One Series X",
+        "Xbox One Series S",
+        "Nintendo Switch OLED",
+        "Bose Wireless Sound Bar",
+        "Samsung Sound Bar",
+        "HDMI Cables",
+        "LG Wireless 7.1 Sound Bar",
+        "NETGEAR Nighthawk Wireless Router",
+        "ASUS HB5000 Wi-Fi 6 Router",
     ];
     let dict_seed_ref = storage::new_dictionary(DICT_NAME).unwrap_or_revert();
 
-    for dictionary_item_key in grocery_items {
+    for dictionary_item_key in inventory_items {
         let item_ref = storage::new_uref(dictionary_item_key);
 
         let key = Key::URef(item_ref);
         runtime::put_key(dictionary_item_key, key);
 
-        let mut inventory_count: u32 = NUM_SMALL_ITEM;
-        if dictionary_item_key.ends_with('s') {
-            inventory_count *= 3;
+        let mut inventory_count: u32 = NUM_STARTING_QTY;
+        if dictionary_item_key.contains("Samsung") {
+            inventory_count *= 4;
+        } else if dictionary_item_key.contains("Sony") {
+            inventory_count /= 3;
+        } else if dictionary_item_key.contains("Xbox") {
+            inventory_count *= 2;
         }
 
-        match storage::dictionary_get::<u32>(dict_seed_ref, dictionary_item_key).unwrap_or_revert()
-        {
+        match storage::dictionary_get::<u32>(dict_seed_ref, dictionary_item_key).unwrap_or_revert() {
             None => storage::dictionary_put(dict_seed_ref, dictionary_item_key, inventory_count),
             Some(_) => runtime::revert(Error::KeyAlreadyExists),
         }
@@ -139,7 +146,7 @@ pub extern "C" fn call() {
         store_entry_points,
         Some(store_named_keys),
         Some(CONTRACT_PACKAGE_HASH.to_string()),
-        Some("grocery_inventory_contract_package_hash_uref".to_string()),
+        Some("inventory_management_contract_package_hash_uref".to_string()),
     );
 
     // Store the contract version in the context's named keys

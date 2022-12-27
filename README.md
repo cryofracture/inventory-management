@@ -1,5 +1,7 @@
 <h1 style="text-align: center;"><a href="https://casperlabs.io/"><img src="https://raw.githubusercontent.com/gRoussac/casper-deployer-hackathon-oct-2022/dev/www/apps/frontend/src/assets/logo-dark.svg" width="120" style="position: relative; top:5px" alt="Casper"></a> <b>Inventory Management</b>
 
+[![Build Status](https://app.travis-ci.com/cryofracture/grocery-inventory.svg?branch=main)](https://app.travis-ci.com/cryofracture/grocery-inventory)  [![Build Status](https://app.travis-ci.com/cryofracture/grocery-inventory.svg?branch=feature)](https://app.travis-ci.com/cryofracture/grocery-inventory)
+
 # **[CasperLabs](https://casperlabs.io/)** Blockchain-based inventory management system
 
 # 📔 **Project**

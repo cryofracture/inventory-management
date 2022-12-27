@@ -15,24 +15,24 @@ mod tests {
     const MY_ACCOUNT: [u8; 32] = [7u8; 32];
     // Define `KEY` constant to match that in the contract.
     const CONTRACT_WASM: &str = "inventory-count.wasm";
-    const DICT_NAME: &str = "grocery_inventory_dict";
+    const DICT_NAME: &str = "inventory_management_dict";
     const RUNTIME_KEY_NAME: &str = "item";
     const ENTRY_POINT_INC_ITEM: &str = "inventory_inc_item";
     const ENTRY_POINT_DEC_ITEM: &str = "inventory_dec_item";
     const ENTRY_POINT_ADD_ITEM: &str = "inventory_add_item";
-    const CONTRACT_PACKAGE_HASH: &str = "grocery_inventory_contract_package_hash";
+    const CONTRACT_PACKAGE_HASH: &str = "inventory_management_contract_package_hash";
     const RUNTIME_INC_QTY: &str = "inc_qty";
     const RUNTIME_DEC_QTY: &str = "dec_qty";
     const RUNTIME_INITIAL_QTY: &str = "initial_qty";
 
     #[test]
-    fn should_deploy_contract_and_get_apples() {
+    fn should_deploy_contract_and_get_hdmi() {
         // Create keypair.
         let (builder, account_addr) = get_contract_builder();
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-        let item = "apples";
+        let item = "HDMI Cables";
 
         // make assertions
         let result_of_query = builder
@@ -44,7 +44,7 @@ mod tests {
             .into_t::<String>()
             .expect("should be string.");
 
-        // each grocery_item is stored in named keys of admin
+        // each inventory is stored in named keys of admin
         assert_eq!(result_of_query, item);
     }
 
@@ -54,17 +54,21 @@ mod tests {
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-        let grocery_items = vec![
-            "apples",
-            "oranges",
-            "lettuce",
-            "tomatoes",
-            "grapes",
-            "carrots",
-            "arugula",
-            "cantaloupes",
-            "cucumbers",
-            "garlic",
+        let inventory_items = vec![
+            "Samsung 85 inch OLED",
+            "Sony 70 inch QLED",
+            "ASUS ROG Zephyrus 15\" Laptop",
+            "Samsung 17\" Laptop",
+            "Sony PlayStation 5",
+            "Xbox One Series X",
+            "Xbox One Series S",
+            "Nintendo Switch OLED",
+            "Bose Wireless Sound Bar",
+            "Samsung Sound Bar",
+            "HDMI Cables",
+            "LG Wireless 7.1 Sound Bar",
+            "NETGEAR Nighthawk Wireless Router",
+            "ASUS HB5000 Wi-Fi 6 Router",
         ];
 
         let dictionnary_key = account.named_keys().get(DICT_NAME).unwrap();
@@ -72,7 +76,7 @@ mod tests {
         let dictionnary_uref = dictionnary_key.as_uref().unwrap();
         dbg!(dictionnary_uref);
 
-        for dictionary_item_key in grocery_items {
+        for dictionary_item_key in inventory_items {
             // On dictionary value for KEY from URef
             let value = builder
                 .query_dictionary_item(None, *dictionnary_uref, dictionary_item_key)
@@ -84,35 +88,37 @@ mod tests {
                 .expect("should be u32");
 
             dbg!(dictionary_item_key);
-            if dictionary_item_key.ends_with('s') {
-                assert_eq!(value, 225_u32);
-            } else {
-                assert_eq!(value, 75_u32);
+            if dictionary_item_key.contains("Samsung") {
+                assert_eq!(value, 300_u32);
+            } else if dictionary_item_key.contains("Sony") {
+                assert_eq!(value, 25_u32);
+            } else if dictionary_item_key.contains("Xbox") {
+                assert_eq!(value, 150_u32);
             }
         }
     }
 
     #[test]
-    fn should_increase_lettuce_inventory_from_entry_point_payable_tx() {
+    fn should_increase_playstation_inventory_from_entry_point_payable_tx() {
         let (mut builder, account_addr) = get_contract_builder();
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-        let item = "lettuce";
+        let item = "Sony PlayStation 5";
         let inc_amt: u32 = 100;
 
-        let grocery_inventory_contract_package_hash = account
+        let inventory_management_contract_package_hash = account
             .named_keys()
             .get(CONTRACT_PACKAGE_HASH)
             .and_then(|key| key.into_hash())
             .map(ContractPackageHash::new)
             .expect("should have test contract package hash");
 
-        dbg!(grocery_inventory_contract_package_hash);
+        dbg!(inventory_management_contract_package_hash);
 
         let execute_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
             account_addr,
-            grocery_inventory_contract_package_hash,
+            inventory_management_contract_package_hash,
             None,
             ENTRY_POINT_INC_ITEM,
             runtime_args! {
@@ -139,30 +145,30 @@ mod tests {
             .into_t::<u32>()
             .expect("should be u32");
         // dbg!(dictionary_item_key);
-        assert_eq!(value, 175_u32);
+        assert_eq!(value, 125_u32);
     }
 
     #[test]
-    fn should_decrease_grapes_inventory_from_entry_point_payable_tx() {
+    fn should_decrease_samsung_tv_inventory_from_entry_point_payable_tx() {
         let (mut builder, account_addr) = get_contract_builder();
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-        let item = "grapes";
+        let item = "Samsung 85 inch OLED";
         let dec_amt: u32 = 200;
 
-        let grocery_inventory_contract_package_hash = account
+        let inventory_management_contract_package_hash = account
             .named_keys()
             .get(CONTRACT_PACKAGE_HASH)
             .and_then(|key| key.into_hash())
             .map(ContractPackageHash::new)
             .expect("should have test contract package hash");
 
-        dbg!(grocery_inventory_contract_package_hash);
+        dbg!(inventory_management_contract_package_hash);
 
         let execute_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
             account_addr,
-            grocery_inventory_contract_package_hash,
+            inventory_management_contract_package_hash,
             None,
             ENTRY_POINT_DEC_ITEM,
             runtime_args! {
@@ -189,30 +195,30 @@ mod tests {
             .into_t::<u32>()
             .expect("should be u32");
         // dbg!(dictionary_item_key);
-        assert_eq!(value, 25_u32);
+        assert_eq!(value, 100_u32);
     }
 
     #[test]
-    fn should_add_avocados_to_inventory_from_entry_point_payable_tx() {
+    fn should_add_hp_printer_to_inventory_from_entry_point_payable_tx() {
         let (mut builder, account_addr) = get_contract_builder();
         let account = builder.get_expected_account(account_addr);
         dbg!(account.named_keys());
 
-        let item = "avocados";
+        let item = "HP Deskjet Printer";
         let initial_qty: u32 = 215;
 
-        let grocery_inventory_contract_package_hash = account
+        let inventory_management_contract_package_hash = account
             .named_keys()
             .get(CONTRACT_PACKAGE_HASH)
             .and_then(|key| key.into_hash())
             .map(ContractPackageHash::new)
             .expect("should have test contract package hash");
 
-        dbg!(grocery_inventory_contract_package_hash);
+        dbg!(inventory_management_contract_package_hash);
 
         let execute_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
             account_addr,
-            grocery_inventory_contract_package_hash,
+            inventory_management_contract_package_hash,
             None,
             ENTRY_POINT_ADD_ITEM,
             runtime_args! {
