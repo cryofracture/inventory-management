@@ -1,7 +1,24 @@
 language: rust
-script:
-  - rustup component add clippy --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
-  - rustup component add rustfmt --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
-  - make prepare
-  - make check-lint
-  - make test
+dist: focal
+services:
+  - docker
+stages:
+  - lint contract
+  - test contract
+#  - set up nctl
+#  - deploy contract to nctl
+jobs:
+  include:
+    - stage: lint contract
+      name: "Clippy Lint"
+      if: type IN (push) and branch IN (feature*, develop*)
+      script:
+        - rustup component add clippy --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
+        - rustup component add rustfmt --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
+        - make prepare
+        - make check-lint
+    - stage: test contract
+      name: "Cargo unit tests"
+      if: type IN (push) and branch IN (feature*, develop*)
+      script:
+        - make test

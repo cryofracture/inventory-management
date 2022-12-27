@@ -31,7 +31,7 @@ casper-client put-deploy \
   nctl-view-chain-deploy deploy=$DEPLOY_HASH
 ```
 
-#### Confirm inventory / post deployment checks
+### Confirm inventory / post deployment checks
 You can now query the blockchain for any of the items from the inventory_items vec. Get a state-root-hash and the inventory_management_contract_hash from the NCTL network and then you can confirm some inventory count/key existence:
 ```bash
 nctl-view-chain-state-root-hash node=1 | awk '{print $NF}'
@@ -63,9 +63,10 @@ Which should return a JSON object similar to the below output. The quantity is d
   }
 }
 ```
-
+## Post-deployment experimentation
 From here, you can feel free to experiment with increasing and decreasing the quantity of given items in inventory, or feel free to add new items to the inventory management system.
-Increase Quantity of item (recieve more inventory):
+
+#### Increase Quantity of item (recieve more inventory):
 ```bash
 nctl-view-chain-state-root-hash node=1 | awk '{print $NF}'
 STATE_ROOT_HASH= # copy/paste the output of above command
@@ -77,7 +78,7 @@ casper-client get-dictionary-item \
     --dictionary-name inventory_management_dict \
     --dictionary-item-key "Nintendo Switch OLED"
 ```
-Decrease Quantity of item (sold some inventory):
+#### Decrease Quantity of item (sold some inventory):
 ```bash
 casper-client put-deploy \
     --node-address http://localhost:11101 \
@@ -89,7 +90,7 @@ casper-client put-deploy \
     --session-arg item:"string='Samsung 17\" Laptop'" \
     --session-arg dec_qty:"u32='125'"
 ```
-Add Item:
+#### Add Item:
 ```bash
 casper-client put-deploy \
     --node-address http://localhost:11101 \
@@ -102,8 +103,7 @@ casper-client put-deploy \
     --session-arg initial_qty:"U32='199'"
 ```
 
-
-
+As mentioned previously, if there are any improvements or new features you'd like to see, feel free to fork and submit a pull request to the `feature` branch!
 
 
 ### Helpful NCTL/RPC query commands

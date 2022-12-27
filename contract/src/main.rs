@@ -89,7 +89,8 @@ pub extern "C" fn call() {
             inventory_count *= 2;
         }
 
-        match storage::dictionary_get::<u32>(dict_seed_ref, dictionary_item_key).unwrap_or_revert() {
+        match storage::dictionary_get::<u32>(dict_seed_ref, dictionary_item_key).unwrap_or_revert()
+        {
             None => storage::dictionary_put(dict_seed_ref, dictionary_item_key, inventory_count),
             Some(_) => runtime::revert(Error::KeyAlreadyExists),
         }
