@@ -31,7 +31,6 @@ Go [here](./guide/README.md) for a walkthrough on how to deploy the inventory ma
 Smart contracts are implemented in [Rust](https://www.rust-lang.org/) + [Casper smart contract crate](https://docs.rs/casper-contract/latest/casper_contract/).
 
 # 🛣️ Roadmap / Todo / Tofix
-
 - MVP
     - [✓] Develop contract that creates a dictionary of items in inventory 🏬
     - [✓] Develop contract function that increments a given item in inventory by a specified amount (indicating shipment received) 🚚

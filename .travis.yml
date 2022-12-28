@@ -19,20 +19,20 @@ jobs:
         - make check-lint
     - stage: test contract
       name: "Cargo unit tests"
-      if: type IN (push) and branch =~ /^(feature|develop)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push) and branch =~ /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/gm
       script:
         - make prepare
         - make test
     - stage: set up nctl
       name: "Docker Pull NCTL"
-      if: type IN (push, pull_request) and branch =~ /^(feature|develop)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push, pull_request) and branch =~ /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/gm
       script:
         - docker pull makesoftware/casper-nctl
         - docker run --rm -it --name mynctl -d -p 11101:11101 -p 14101:14101 -p 18101:18101 makesoftware/casper-nctl
         - source nctl-activate.sh mynctl
     - stage: deploy contract to nctl
       name: "Docker deployment test"
-      if: type IN (push, pull_request) and branch =~ /^(feature|develop|main)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push, pull_request) and branch =~ /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/gm
       before_script:
         - echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
         - curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
