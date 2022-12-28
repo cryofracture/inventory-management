@@ -32,7 +32,7 @@ jobs:
         - source nctl-activate.sh mynctl
     - stage: deploy contract to nctl
       name: "Docker deployment test"
-      if: type IN (pull_request) and branch =~ /^(feature|main)(\/)*([a-z])*([-_])*([a-zA-Z0-9])*$/gm
+      if: type IN (pull_request) and branch =~ /^(develop|feature|main)(\/)*([a-z])*([-_])*([a-zA-Z0-9])*$/gm
       script:
         - make prepare
         - make build-contract
