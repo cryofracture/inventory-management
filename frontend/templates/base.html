@@ -1,0 +1,24 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block head %}
+{{super()}}
+<title>{{ title }} - Huokan Customer ID Generator</title>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark navbarMain">
+    <a class="navbar-brand" href="{{url_for('main')}}">Huokan</a>
+    <div id="navbarNavAltMarkup">
+        <div class="navbar-nav navDiv">
+            <a class="nav-item nav-link {% if active %} active {% endif %}" href="{{url_for('main')}}"> Home <span class="sr-only"></span></a>
+            <a class="nav-item nav-link {% if active %} active {% endif %}" href="{{url_for('add_item')}}">Add New Item to Inventory</a>
+            <a class="nav-item nav-link {% if active %} active {% endif %}" href="{{url_for('manage_inventory')}}">Manage Inventory Quantity</a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="container w-50 mx-auto">
+        {% block app_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
