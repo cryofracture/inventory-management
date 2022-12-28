@@ -56,6 +56,7 @@ jobs:
         - sleep 90
         - docker exec --user casper mynctl cat casper-node/utils/nctl/assets/net-1/users/user-1/secret_key.pem > user1_secret_key.pem
         - casper-client put-deploy --node-address  http://localhost:11101/rpc --chain-name casper-net-1 --secret-key user1_secret_key.pem --payment-amount 30000000000 --session-path contract/target/wasm32-unknown-unknown/release/inventory-count.wasm
+        - sleep 20
         - STATE_ROOT_HASH=$(casper-client get-state-root-hash --node-address http://localhost:11101 | jq .result.state_root_hash | cut -d '"' -f2)
         - ACCOUNT_KEY=$(docker exec --user casper mynctl cat casper-node/utils/nctl/assets/net-1/users/user-1/public_key_hex)
         - CONTRACT_HASH=$(casper-client query-global-state --node-address http://localhost:11101 --state-root-hash "$STATE_ROOT_HASH" --key "$ACCOUNT_KEY" | grep "inventory_management_contract_hash" -B 1 | head -1 | awk '{print $NF}' | cut -d '"' -f2)
