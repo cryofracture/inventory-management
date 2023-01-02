@@ -11,7 +11,9 @@ jobs:
   include:
     - stage: lint contract
       name: "Clippy Lint"
-      if: type IN (push) and branch =~ /^(feature|develop)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push, pull_request)
+      on:
+        branch: /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/g
       script:
         - rustup component add clippy --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
         - rustup component add rustfmt --toolchain nightly-2022-01-13-x86_64-unknown-linux-gnu
@@ -19,20 +21,26 @@ jobs:
         - make check-lint
     - stage: test contract
       name: "Cargo unit tests"
-      if: type IN (push) and branch =~ /^(feature|develop)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push, pull_request)
+      on:
+        branch: /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/g
       script:
         - make prepare
         - make test
     - stage: set up nctl
       name: "Docker Pull NCTL"
-      if: type IN (push, pull_request) and branch =~ /^(feature|develop)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push, pull_request)
+      on:
+        branch: /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/g
       script:
         - docker pull makesoftware/casper-nctl
         - docker run --rm -it --name mynctl -d -p 11101:11101 -p 14101:14101 -p 18101:18101 makesoftware/casper-nctl
         - source nctl-activate.sh mynctl
     - stage: deploy contract to nctl
       name: "Docker deployment test"
-      if: type IN (push, pull_request) and branch =~ /^(feature|develop|main)(\/)*[-_a-zA-Z0-9]*$/gm
+      if: type IN (push, pull_request)
+      on:
+        branch: /^(feature|develop|main)[-_\/a-zA-Z0-9]*$/g
       before_script:
         - echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
         - curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
@@ -45,10 +53,16 @@ jobs:
         - docker pull makesoftware/casper-nctl
         - docker run --rm -it --name mynctl -d -p 11101:11101 -p 14101:14101 -p 18101:18101 makesoftware/casper-nctl
         - source nctl-activate.sh mynctl
-        - nctl-view-user-secret-key user=1 > user1_secret_key.pem
-        - casper-client put-deploy \
-          --node-address  http://localhost:11101/rpc \
-          --chain-name casper-net-1 \
-          --secret-key user1_secret_key.pem \
-          --payment-amount 30000000000 \
-          --session-path contract/target/wasm32-unknown-unknown/release/inventory-count.wasm
+        - sleep 60
+        - docker exec --user casper mynctl cat casper-node/utils/nctl/assets/net-1/users/user-1/secret_key.pem > user1_secret_key.pem
+        - casper-client put-deploy --node-address  http://localhost:11101/rpc --chain-name casper-net-1 --secret-key user1_secret_key.pem --payment-amount 30000000000 --session-path contract/target/wasm32-unknown-unknown/release/inventory-count.wasm
+        - sleep 90
+        - STATE_ROOT_HASH=$(casper-client get-state-root-hash --node-address http://localhost:11101 | jq .result.state_root_hash | cut -d '"' -f2)
+        - ACCOUNT_KEY=$(docker exec --user casper mynctl cat casper-node/utils/nctl/assets/net-1/users/user-1/public_key_hex)
+        - CONTRACT_HASH=$(casper-client query-global-state --node-address http://localhost:11101 --state-root-hash "$STATE_ROOT_HASH" --key "$ACCOUNT_KEY" | grep "inventory_management_contract_hash" -B 1 | head -1 | awk '{print $NF}' | cut -d '"' -f2)
+        - echo "State Root Hash = $STATE_ROOT_HASH"
+        - echo "Contract Hash = $CONTRACT_HASH"
+        - echo "Public Key = $ACCOUNT_KEY"
+        - COUNT=$(casper-client get-dictionary-item --node-address http://localhost:11101 --state-root-hash $STATE_ROOT_HASH --contract-hash $CONTRACT_HASH --dictionary-name inventory_management_dict --dictionary-item-key "Nintendo Switch OLED" | jq .result.stored_value.CLValue.parsed)
+        - echo "Available Nintendo Switch OLED = $COUNT"
+        - if [ $COUNT -eq 175 ]; then echo "exit status = $?"; echo "Inventory matches expected quantity."; else echo "exit status = $?"; echo "Inventory does not match expected quantity."; fi
