@@ -4,3 +4,5 @@ receive_inventory
 send_inventory
 *.pem
 add_item
+*.env
+venv

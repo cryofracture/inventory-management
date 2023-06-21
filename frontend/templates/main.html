@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block head %}
+{{super()}}
+<link rel="stylesheet" type="text/css" href="static/css/base.css">
+<script src="static/js/validateCustomer.js"></script>
+
+{% endblock %}
+
+{% block app_content %}
+<div class="container input-group mb-3 mx-auto mainInput">
+    <p>
+        <a class="btn btn-info" data-toggle="collapse" href="#submissionInfo" role="button" aria-expanded="false" aria-controls="collapseExample">
+            Click for more information
+        </a>
+    </p>
+    <div class="form-group">
+        <div class="collapse" id="submissionInfo">
+            <div class="card card-body submissionTip">
+                When entering customer and advertiser names:<br>
+                1. they MUST be in the format of Name-Realm. <br>
+                2. Include alt characters for character names.<br>
+            </div>
+        </div>
+    </div>
+   <form method="POST" onsubmit="return (validateCustomer('customerName') && validateAdvertiser('advertiserName'));" name="IDForm">
+        <div class="form-group">
+            <label class="label label-secondary" for="customerName">Customer Name-Realm (e.g. Ibuyboosts-Area52</label>
+            <input type="text" class="form-control" id="customerName" placeholder="Ibuyboosts-Area52" pattern="^.{2,}[\-].{5,}" required>
+        </div>
+<!--        <div class="form-group">-->
+<!--            <label class="label label-secondary" for="advertiserName">Advertiser Name-Realm (e.g. Cryofracture-Area52)</label>-->
+<!--            <input type="text" class="form-control" id="advertiserName" placeholder="Cryofracture-Area52" pattern="^.{2,}[\-].{5,}" required>-->
+<!--        </div>-->
+        <div class="form-group">
+            <button class="btn btn-success" type="submit">Add item to inventory</button>
+        </div>
+   </form>
+</div>
+{% endblock %}
+Footer
+© 2022 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
